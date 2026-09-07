@@ -17,9 +17,14 @@ preprocessor:
   _target_: preprocessors.char_tokenizer.CharTokenizer
 
 model:
-  _target_: models.transformer.TransformerModel
+  _target_: models.rope_transformer.RoPETransformerModel
+  collate_fn_target: models.rope_transformer.CausalLMCollateFn
   hidden_size: 64
   num_layers: 2
+  num_heads: 2
+  feedforward_dim: 128
+  dropout: 0.1
+  max_seq_len: 128
 
 optimizer:
   _target_: torch.optim.AdamW
@@ -27,7 +32,14 @@ optimizer:
 
 data:
   dataset:
-    _target_: datasets.my_dataset.MyDataset
+    _target_: dataset_impl.string_reverse.StringReverseDataset
+    per_seq_size: 1000
+    charset: "@alphanumeric"
+    min_seq_len: 1
+    max_seq_len: 16
+  transform:
+    _target_: dataset_impl.string_reverse.PromptCompletionTransform
+    ignore_index: -100
   dataloader:
     batch_size: 128
     shuffle: true
@@ -59,7 +71,7 @@ optimizer:
 
 This tells Trainite to instantiate `torch.optim.AdamW` with the configured learning rate. The remaining arguments (like model parameters) are injected by the trainer.
 
-The `preprocessor`, `model`, `optimizer`, and `data.dataset` blocks all use this pattern.
+The `preprocessor`, `model`, `optimizer`, and dataset/transform blocks all use this pattern (for example `data.dataset` and `data.transform` in auto-split configs, or `data.train.dataset` / `data.val.dataset` in explicit-split configs).
 
 ### Configuration blocks
 
@@ -67,18 +79,20 @@ The `preprocessor`, `model`, `optimizer`, and `data.dataset` blocks all use this
 
 **`preprocessor`** — The tokenizer or preprocessing component. Must provide a `_target_`.
 
-**`model`** — Model architecture and hyperparameters. The `_target_` points to the model class; everything else (like `hidden_size`, `num_layers`) is passed to its constructor.
+**`model`** — Model architecture and hyperparameters. The `_target_` points to the model class (such as `models.rope_transformer.RoPETransformerModel`); constructor arguments like `hidden_size`, `num_layers`, and `num_heads` are passed through. You can also specify `collate_fn_target` (e.g. `models.rope_transformer.CausalLMCollateFn`) to configure the custom batch collation function used by the data loaders.
 
 **`optimizer`** — Defaults to `torch.optim.AdamW` with `lr=0.001` if not specified.
 
 **`data`** — Datasets, transforms, and dataloaders. Trainite supports two ways to set up your data splits:
 
-  1. **Auto-split** — provide a single `dataset` block along with `val_ratio` and `test_ratio`. Trainite calls `torch.utils.data.random_split` to divide the data. This is what most examples use.
+  1. **Auto-split** — provide a single `dataset` block (and optional `transform`) along with `val_ratio` and `test_ratio`. Trainite calls `torch.utils.data.random_split` to divide the data. This is what most starter projects use.
   2. **Explicit splits** — provide separate `train`, `val`, and optionally `test` blocks, each with its own `dataset`, `transform`, and `dataloader` config.
+
+Note that `dataloader` blocks accept standard PyTorch `DataLoader` options (such as `batch_size`, `shuffle`, and `num_workers`) rather than using a `_target_`.
 
 **`trainer`** — Training loop parameters: `epochs`, `log_every_steps`, `early_stopping_patience` (set to `null` to disable), `inference_every_epochs`, `inference_num_samples`, `max_inference_new_tokens`, and `grad_clip_norm`.
 
-**`output`** — Where artifacts are saved. `root` is the top-level directory and `run_name` identifies the experiment.
+**`output`** — Where artifacts are saved. `root` specifies the parent directory and `run_name` identifies the experiment run. Artifacts are saved to `<root>/<run_name>/<timestamp>/`.
 
 **`logger`** — Either `tensorboard` (default) or `clearml`.
 
@@ -103,13 +117,13 @@ python main.py config.yaml
 What happens under the hood:
 
 1. The YAML is loaded and validated into a `ProjectConfig` instance.
-2. The preprocessor, model, optimizer, and dataloaders are all built from their `_target_` entries.
+2. The preprocessor, model, and dataset/transform components are instantiated from their `_target_` entries. DataLoaders are constructed from the `dataloader` options and `collate_fn_target`. The optimizer is created with the model parameters.
 3. Logging, metrics, and the output directory are set up.
 4. `trainer.run()` starts the PyTorch-Ignite training loop — running epochs, evaluating on the validation set, saving checkpoints, and optionally running test evaluation at the end.
 
 ## Outputs
 
-Each run creates a timestamped directory under `outputs/<run_name>/`:
+Each run creates a timestamped directory under `<output.root>/<run_name>/`:
 
 ```
 outputs/
@@ -132,5 +146,5 @@ uv run tensorboard --logdir outputs
 
 Working examples are the best way to understand how everything fits together:
 
-* [**String Reversal**](https://github.com/pytorch-ignite/trainite/tree/main/examples/string_reversal) — a sequence-to-sequence toy task that trains a decoder-only Transformer to reverse character strings.
-* [**Counting**](https://github.com/pytorch-ignite/trainite/tree/main/examples/counting) — a counting task using ClearML for logging.
+* [**String Reversal**](https://github.com/pytorch-ignite/trainite/tree/main/examples/string_reversal) — a sequence-to-sequence toy task that trains a decoder-only Transformer with RoPE to reverse character strings.
+* [**Counting**](https://github.com/pytorch-ignite/trainite/tree/main/examples/counting) — reproduces length-generalization experiments from *"Knee-Deep in C-RASP: A Transformer Depth Hierarchy"* on an alternating block language, featuring multi-depth sweeps and heatmap visualization.
