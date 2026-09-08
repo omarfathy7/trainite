@@ -145,4 +145,4 @@ uv run tensorboard --logdir outputs
 Working examples are the best way to understand how everything fits together:
 
 * [**String Reversal**](https://github.com/pytorch-ignite/trainite/tree/main/examples/string_reversal) — a sequence-to-sequence toy task that trains a decoder-only Transformer with RoPE to reverse character strings.
-* [**Counting**](https://github.com/pytorch-ignite/trainite/tree/main/examples/counting) — reproduces length-generalization experiments from *"Knee-Deep in C-RASP: A Transformer Depth Hierarchy"* on an alternating block language, featuring multi-depth sweeps and heatmap visualization.
+* [**Counting**](https://github.com/pytorch-ignite/trainite/tree/main/examples/counting) — trains a decoder-only Transformer to count through an alternating block language, reproducing experiments from [*Knee-Deep in C-RASP: A Transformer Depth Hierarchy*](https://arxiv.org/abs/2506.16055).
