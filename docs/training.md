@@ -30,9 +30,7 @@ optimizer:
   _target_: torch.optim.AdamW
   lr: 0.0003
 
-data:
-  dataset:
-    _target_: dataset_impl.string_reverse.StringReverseDataset
+ؤ
     per_seq_size: 1000
     charset: "@alphanumeric"
     min_seq_len: 1
@@ -69,9 +67,7 @@ optimizer:
   lr: 0.0003
 ```
 
-This tells Trainite to instantiate `torch.optim.AdamW` with the configured learning rate. The remaining arguments (like model parameters) are injected by the trainer.
-
-The `preprocessor`, `model`, `optimizer`, and dataset/transform blocks all use this pattern (for example `data.dataset` and `data.transform` in auto-split configs, or `data.train.dataset` / `data.val.dataset` in explicit-split configs).
+The `preprocessor`, `model`, `optimizer`, and dataset/transform blocks all use this pattern (for example `data.dataset` in auto-split configs, or `data.train.dataset` / `data.val.dataset` in explicit-split configs).
 
 ### Configuration blocks
 
