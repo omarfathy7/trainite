@@ -30,7 +30,9 @@ optimizer:
   _target_: torch.optim.AdamW
   lr: 0.0003
 
-ؤ
+data:
+  dataset:
+    _target_: dataset_impl.string_reverse.StringReverseDataset
     per_seq_size: 1000
     charset: "@alphanumeric"
     min_seq_len: 1
