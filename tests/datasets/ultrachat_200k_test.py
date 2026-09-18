@@ -19,7 +19,8 @@ class FakeTokenizer:
     ) -> dict[str, Any]:
         self.calls.append(text)
         words = text.strip().split()
-        ids = [1] + [10 + i for i in range(len(words))] + [2]
+        word_ids = [10 + i for i in range(len(words))]
+        ids = [1] + word_ids + [2] if add_special_tokens else word_ids
         attention_mask = [1] * len(ids)
 
         if truncation and max_length is not None:
@@ -47,7 +48,7 @@ def test_ultrachat_transform():
 
     datapoint = transform(sample)
 
-    assert datapoint.source == ("User: hello\nAssistant: world\nUser: how are you?\nAssistant: ")
+    assert datapoint.source == ("User: hello\nAssistant: world\nUser: how are you?\nAssistant:")
     assert datapoint.target == "I am good."
 
     assert datapoint.train_input_ids.dtype == torch.long
@@ -59,9 +60,10 @@ def test_ultrachat_transform():
         datapoint.train_input_ids,
         torch.tensor([1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21], dtype=torch.long),
     )
+    # User tokens and role headers are masked to -100; only assistant content is supervised
     assert torch.equal(
         datapoint.train_label_ids,
-        torch.tensor([10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 2], dtype=torch.long),
+        torch.tensor([-100, -100, -100, 13, -100, -100, -100, -100, -100, 19, 20, 21, -100], dtype=torch.long),
     )
     assert torch.equal(
         datapoint.attention_mask,
@@ -71,9 +73,6 @@ def test_ultrachat_transform():
         datapoint.eval_input_ids,
         torch.tensor([1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2], dtype=torch.long),
     )
-
-    # Full conversation was tokenized for training
-    assert tokenizer.calls[0] == ("User: hello\nAssistant: world\nUser: how are you?\nAssistant: I am good.\n")
 
 
 def test_ultrachat_transform_user_ended_conversation():
@@ -90,7 +89,7 @@ def test_ultrachat_transform_user_ended_conversation():
 
     datapoint = transform(sample)
 
-    assert datapoint.source == ("User: hello\nAssistant: world\nUser: final question\nAssistant: ")
+    assert datapoint.source == ("User: hello\nAssistant: world\nUser: final question\nAssistant:")
     assert datapoint.target == ""
 
 
@@ -113,11 +112,15 @@ def test_ultrachat_transform_truncates_to_max_length():
     )
     assert torch.equal(
         datapoint.train_label_ids,
-        torch.tensor([10, 11], dtype=torch.long),
+        torch.tensor([-100, -100], dtype=torch.long),
     )
     assert torch.equal(
         datapoint.attention_mask,
         torch.tensor([1, 1], dtype=torch.long),
+    )
+    assert torch.equal(
+        datapoint.eval_input_ids,
+        torch.tensor([1, 10, 11], dtype=torch.long),
     )
 
 
@@ -126,6 +129,14 @@ def test_ultrachat_transform_rejects_small_max_length():
 
     with pytest.raises(ValueError, match="at least 2"):
         UltraChat200kTransform(tokenizer=tokenizer, max_length=1)
+
+
+def test_ultrachat_transform_rejects_empty_messages():
+    tokenizer = FakeTokenizer()
+    transform = UltraChat200kTransform(tokenizer=tokenizer, max_length=16)
+
+    with pytest.raises(ValueError, match="messages must not be empty"):
+        transform({"messages": []})
 
 
 def test_ultrachat_transform_rejects_invalid_messages():
