@@ -232,3 +232,23 @@ class UltraChat200kDataConfig(DataConfigBase):
             ),
         )
     )
+
+
+class PythonEduTransformConfig(TransformConfig):
+    target: str = Field(
+        default="trainite.datasets.python_edu.PythonEduTransform",
+        alias="_target_",
+    )
+    max_length: int = Field(default=128, gt=1)
+
+
+class PythonEduDatasetConfig(HuggingFaceDatasetConfig):
+    path: str = "Avelina/python-edu-cleaned"
+
+
+class PythonEduDataConfig(DataWithAutoSplit):
+    dataset: PythonEduDatasetConfig = Field(default_factory=PythonEduDatasetConfig)
+    transform: PythonEduTransformConfig = Field(default_factory=PythonEduTransformConfig)
+    test_ratio: float = 0.1
+    val_ratio: float = 0.1
+    dataloader: DataLoaderConfig = Field(default_factory=lambda: DataLoaderConfig(batch_size=32, shuffle=True))
