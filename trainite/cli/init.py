@@ -135,6 +135,11 @@ def generate_uv_project(name: str, version: str, dependencies: list[str]) -> str
     deps_arr = tomlkit.item(dependencies)
     deps_arr.multiline(True)
 
+    build_system = tomlkit.table()
+    build_system.add("requires", ["setuptools"])
+    build_system.add("build-backend", "setuptools.build_meta")
+    doc.add("build-system", build_system)
+
     project = tomlkit.table()
     project.add("name", name)
     project.add("version", version)
@@ -142,6 +147,12 @@ def generate_uv_project(name: str, version: str, dependencies: list[str]) -> str
     project.add("dependencies", deps_arr)
     project.add("requires-python", ">=3.10")
     doc.add("project", project)
+
+    tool = tomlkit.table()
+    setuptools_tool = tomlkit.table()
+    setuptools_tool.add("packages", [])
+    tool.add("setuptools", setuptools_tool)
+    doc.add("tool", tool)
 
     return tomlkit.dumps(doc)
 

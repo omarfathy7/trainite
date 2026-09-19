@@ -8,13 +8,19 @@ from pathlib import Path
 import pytest
 import yaml
 
-from trainite.cli.init import Init, init_project
+from trainite.cli.init import Init, init_project, generate_uv_project
 from trainite.config.registry import (
     DATASET_SPECS,
     MODEL_SPECS,
     PREPROCESSOR_SPECS,
     TRAINER_SPECS,
 )
+
+
+def test_generated_pyproject_has_build_system() -> None:
+    pyproject = generate_uv_project(name="demo", version="0.1.0", dependencies=["torch"])
+    assert 'build-backend = "setuptools.build_meta"' in pyproject
+    assert "packages = []" in pyproject
 
 
 def get_valid_project_combinations():
