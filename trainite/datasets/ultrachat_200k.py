@@ -40,7 +40,7 @@ class UltraChat200kTransform:
 
     During evaluation (inference):
         The evaluation prompt preserves conversational context up to the final user turn and
-        ends with ``Assistant:`` (without trailing whitespace to prevent BPE tokenization artifacts),
+        ends with ``Assistant:``,
         with ``target`` containing the reference assistant response:
             eval_input_ids : tokenized prompt ending with "Assistant:"
     """
