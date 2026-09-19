@@ -13,7 +13,6 @@ class DatapointModel(BaseModel):
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
     source: str
     target: str
     train_input_ids: torch.Tensor
