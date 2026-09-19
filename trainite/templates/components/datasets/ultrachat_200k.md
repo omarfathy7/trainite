@@ -1,7 +1,6 @@
 # UltraChat 200k dataset
 
-This built-in dataset loads the UltraChat 200k dataset from Hugging Face
-Datasets and applies a multi-turn conversation transform for causal language-modeling.
+This built-in dataset loads the ['HuggingFaceH4/ultrachat_200k'](https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k) dataset from Hugging Face and applies a multi-turn conversation transform for causal language-modeling.
 
 ## Configure the dataset
 
@@ -38,10 +37,10 @@ data:
 The transform renders each turn as `User: <content>\n` and `Assistant: <content>\n`.
 The tokenizer handles special-token addition. The transform creates:
 
-* `train_input_ids`: Full sequence tokens shifted right by 1 (`token_ids[:-1]`).
+* `train_input_ids`: All sequence tokens except the last one (`token_ids[:-1]`).
 * `train_label_ids`: Full sequence tokens shifted left by 1 (`token_ids[1:]`), with user prompt tokens and role headers masked to `ignore_index` (`-100`) so loss is only calculated on assistant responses.
 * `attention_mask`: Attention mask for the input sequence (`attention_mask[:-1]`).
-* `eval_input_ids`: Generation prompt token IDs ending with `Assistant:` (without trailing whitespace).
+* `eval_input_ids`: Generation prompt token IDs ending with `Assistant:`.
 
 During evaluation and inference logging, the prompt preserves the multi-turn context and ends with
 `Assistant:` so the model generates the final assistant response.

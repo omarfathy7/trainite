@@ -13,7 +13,6 @@ class DatapointModel(BaseModel):
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
     source: str
     target: str
     train_input_ids: torch.Tensor
@@ -34,14 +33,14 @@ class UltraChat200kTransform:
         assistant responses given the conversational history, without computing loss on
         user queries or role headers.
 
-        input_ids : full conversation tokens shifted right by 1 (= token_ids[:-1])
+        input_ids : all conversation tokens except the last one (= token_ids[:-1])
         labels    : full conversation tokens shifted left by 1 (= token_ids[1:]),
                     where all user message tokens and role headers are masked with ``ignore_index`` (-100).
                     Only assistant response tokens are active loss targets.
 
     During evaluation (inference):
         The evaluation prompt preserves conversational context up to the final user turn and
-        ends with ``Assistant:`` (without trailing whitespace to prevent BPE tokenization artifacts),
+        ends with ``Assistant:``,
         with ``target`` containing the reference assistant response:
             eval_input_ids : tokenized prompt ending with "Assistant:"
     """
