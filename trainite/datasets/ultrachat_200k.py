@@ -4,23 +4,6 @@ import torch
 from pydantic import BaseModel, ConfigDict
 
 
-class DatapointModel(BaseModel):
-    """Contract for a causal-LM transformed item: training tensors + the eval prompt.
-
-    Convention: every causal-LM dataset transform returns this shape. The collate
-    fn batches the `train_*`/`attention_mask` fields; the trainer's inference loop
-    reads `eval_input_ids`/`source`/`target` directly.
-    """
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    source: str
-    target: str
-    train_input_ids: torch.Tensor
-    train_label_ids: torch.Tensor
-    attention_mask: torch.Tensor
-    eval_input_ids: torch.Tensor
-
-
 class UltraChat200kTransform:
     """Converts an UltraChat 200k multi-turn conversation into training tensors.
 
@@ -73,7 +56,7 @@ class UltraChat200kTransform:
         eval_prompt = f"{self._render_messages(eval_messages)}Assistant:"
         return eval_prompt, target
 
-    def __call__(self, sample: dict[str, Any]) -> DatapointModel:
+    def __call__(self, sample: dict[str, Any]) -> "DatapointModel":
         messages = sample.get("messages")
 
         if not isinstance(messages, list):
@@ -161,3 +144,20 @@ class UltraChat200kTransform:
                 dtype=torch.long,
             ),
         )
+
+
+class DatapointModel(BaseModel):
+    """Contract for a causal-LM transformed item: training tensors + the eval prompt.
+
+    Convention: every causal-LM dataset transform returns this shape. The collate
+    fn batches the `train_*`/`attention_mask` fields; the trainer's inference loop
+    reads `eval_input_ids`/`source`/`target` directly.
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    source: str
+    target: str
+    train_input_ids: torch.Tensor
+    train_label_ids: torch.Tensor
+    attention_mask: torch.Tensor
+    eval_input_ids: torch.Tensor

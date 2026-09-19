@@ -42,8 +42,7 @@ The tokenizer handles special-token addition. The transform creates:
 * `attention_mask`: Attention mask for the input sequence (`attention_mask[:-1]`).
 * `eval_input_ids`: Generation prompt token IDs ending with `Assistant:`.
 
-During evaluation and inference logging, the prompt preserves the multi-turn context and ends with
-`Assistant:` so the model generates the final assistant response.
+During evaluation and inference logging, the prompt preserves the multi-turn context and ends with `Assistant:` so the model generates the final assistant response.
 
 ## Dataset splits
 
@@ -52,5 +51,4 @@ The generation-ranking splits (`train_gen` and `test_gen`) are outside the scope
 
 ## Hugging Face authentication
 
-The dataset is downloaded and cached by Hugging Face Datasets. Do not put Hugging Face access
-tokens in `config.yaml`. Authenticate through the Hugging Face CLI or the environment when required.
+The dataset is downloaded and cached by Hugging Face Datasets. Do not put Hugging Face access tokens in `config.yaml`. Authenticate through the Hugging Face CLI or the environment when required.
