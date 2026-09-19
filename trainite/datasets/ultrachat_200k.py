@@ -33,7 +33,7 @@ class UltraChat200kTransform:
         assistant responses given the conversational history, without computing loss on
         user queries or role headers.
 
-        input_ids : full conversation tokens shifted right by 1 (= token_ids[:-1])
+        input_ids : all conversation tokens except the last one (= token_ids[:-1])
         labels    : full conversation tokens shifted left by 1 (= token_ids[1:]),
                     where all user message tokens and role headers are masked with ``ignore_index`` (-100).
                     Only assistant response tokens are active loss targets.
