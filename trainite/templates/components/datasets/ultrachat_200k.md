@@ -1,7 +1,6 @@
 # UltraChat 200k dataset
 
-This built-in dataset loads the UltraChat 200k dataset from Hugging Face
-Datasets and applies a multi-turn conversation transform for causal language-modeling.
+This built-in dataset loads the ['HuggingFaceH4/ultrachat_200k'](https://huggingface.co/datasets/HuggingFaceH4/ultrachat_200k) dataset from Hugging Face and applies a multi-turn conversation transform for causal language-modeling.
 
 ## Configure the dataset
 
